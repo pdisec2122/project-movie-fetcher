@@ -37,7 +37,9 @@ pipeline {
 
             post {
                 always {
-                    archiveArtifacts artifacts: 'target/moviefetcher*.war', fingerprint: true
+                    dir('target') {
+                        archiveArtifacts artifacts: 'moviefetcher*.war', fingerprint: true
+                    }
                 }
             }
         }
@@ -45,12 +47,13 @@ pipeline {
         stage('Docker build image') {
 
             steps {
-                step (
-                    [$class: 'CopyArtifact',
-                    projectName: '${JOB_NAME}',
-                    filter: "moviefetcher*.war",
-                    target: 'moviefetcher.war']
-                );
+     
+                copyArtifacts(
+                    filter: 'moviefetcher*.war',
+                    projectName: env.JOB_NAME,
+                    fingerprintArtifacts: true,
+                    selector: specific(env.BUILD_NUMBER)
+                )
 
                 script {
                     dockerImage = docker.build imagename
