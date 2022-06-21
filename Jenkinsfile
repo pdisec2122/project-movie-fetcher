@@ -47,7 +47,6 @@ pipeline {
             steps {
                 step (
                     [$class: 'CopyArtifact',
-                    projectName: 'Copy war',
                     filter: "target/moviefetcher*.war",
                     target: 'moviefetcher.war']
                 );
