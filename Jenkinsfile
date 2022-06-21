@@ -6,7 +6,7 @@ pipeline {
         }
     }
     tools{
-         jdk 'jdk11'
+         jdk 'openjdk-11'
     }
 
     try {
