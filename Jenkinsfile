@@ -45,16 +45,13 @@ pipeline {
         stage('Docker build image') {
 
             steps {
-                step([
-                    $class: 'CopyArtifact',
-                    filter: 'target/moviefetcher-0.0.1-SNAPSHOT.war',
-                    fingerprintArtifacts: true,
-                    optional: true,
-                    projectName: env.JOB_NAME,
-                    selector: [$class: 'SpecificBuildSelector',
-                            buildNumber: env.BUILD_NUMBER]
-                ])
-                
+                step (
+                    [$class: 'CopyArtifact',
+                    projectName: 'Copy war',
+                    filter: "target/moviefetcher*.war",
+                    target: 'moviefetcher.war']
+                );
+
                 script {
                     dockerImage = docker.build imagename
                 }
