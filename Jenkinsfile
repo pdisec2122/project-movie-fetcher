@@ -9,42 +9,37 @@ pipeline {
          jdk 'openjdk-11'
     }
 
-    try {
+    stages {
 
-        stages {
-
-        
-
-            stage('Preparation') {
-                git branch: 'main', url: 'https://github.com/pdisec2122/project-movie-fetcher.git'
-                sh "git rev-parse --short HEAD > .git/commit-id"
-                commit_id = readFile('.git/commit-id').trim()
-            }
-
-            stage('Build') {
-                environment {
-                    HOME="."
-                }
-                steps {
-                    sh 'mvn clean install -DskipTests'
-                }
-            }
-
-            stage('docker build/push') {
-                docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                    def app = docker.build("pdisec2122/project-movie-fetcher")
-                    app.push("${commit_id}")
-                    app.push("latest")
-                }
-            }
-
-            currentBuild.result = "SUCCESS";
-        
-        
+        stage('Preparation') {
+            git branch: 'main', url: 'https://github.com/pdisec2122/project-movie-fetcher.git'
+            sh "git rev-parse --short HEAD > .git/commit-id"
+            commit_id = readFile('.git/commit-id').trim()
         }
-        
-    } catch(e) {
-            currentBuild.result = "FAILURE";
-            throw e;
+
+        stage('Build') {
+            environment {
+                HOME="."
+            }
+            steps {
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+        stage('docker build/push') {
+            docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                def app = docker.build("pdisec2122/project-movie-fetcher")
+                app.push("${commit_id}")
+                app.push("latest")
+            }
+        }
+    
     }
+
+    post {
+        always {
+            echo "Finished"
+        }
+    }
+
 }
