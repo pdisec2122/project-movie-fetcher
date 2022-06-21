@@ -8,24 +8,40 @@ pipeline {
     tools{
          jdk 'jdk11'
     }
+
+
     stages {
-        stage('configFile Plugin') {
-            steps {
-                configFileProvider([configFile(fileId: '003c15d9-32f5-4f03-b320-1ea95c142320', variable: 'APPLICATION_PROPERTIES')]) {
-                    echo " =========== ^^^^^^^^^^^^ Reading config from pipeline script "
-                    sh "touch application.properties"
-                    sh "cat ${env.APPLICATION_PROPERTIES} > application.properties"
-                    echo " =========== ~~~~~~~~~~~~ ============ "
+
+        try {
+
+            stage('Preparation') {
+                git branch: 'main', url: 'https://github.com/pdisec2122/project-movie-fetcher.git'
+                sh "git rev-parse --short HEAD > .git/commit-id"
+                commit_id = readFile('.git/commit-id').trim()
+            }
+
+            stage('Build') {
+                environment {
+                    HOME="."
+                }
+                steps {
+                    sh 'mvn clean install -DskipTests'
                 }
             }
-        }
-        stage('Build') {
-            environment {
-                HOME="."
+
+            stage('docker build/push') {
+                docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                    def app = docker.build("pdisec2122/project-movie-fetcher")
+                    app.push("${commit_id}")
+                    app.push("latest")
+                }
             }
-            steps {
-                sh 'mvn clean install -DskipTests'
-            }
+
+            currentBuild.result = "SUCCESS";
+        
+        } catch(e) {
+            currentBuild.result = "FAILURE";
+            throw e;
         }
     }
 }
