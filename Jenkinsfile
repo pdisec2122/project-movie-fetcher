@@ -1,9 +1,13 @@
 pipeline {
+    
+    agent any
+
     environment {
         imagename = "pdisec2122/project-movie-fetcher"
         registryCredential = 'dockerhub'
         dockerImage = ''
     }
+
 
     stages {
 
