@@ -1,6 +1,11 @@
 pipeline {
     
-    agent any
+    agent {
+        docker {
+            image 'maven:3.8.1-adoptopenjdk-11'
+            args '-v /root/.m2:/root/.m2'
+        }
+    }
 
     environment {
         imagename = "pdisec2122/project-movie-fetcher"
@@ -23,14 +28,9 @@ pipeline {
             environment {
                 HOME="."
             }
-            agent {
-                docker {
-                    image 'maven:3.8.1-adoptopenjdk-11'
-                    args '-v /root/.m2:/root/.m2 -v target:${WORKSPACE}/target'
-                }
-            }
+            
             steps {
-                sh 'mvn clean install -DskipTests'
+                sh 'mvn install -DskipTests'
             }
         }
 
