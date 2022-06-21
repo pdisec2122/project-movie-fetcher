@@ -1,11 +1,6 @@
 pipeline {
     
-    agent {
-        docker {
-            image 'maven:3.8.1-adoptopenjdk-11'
-            args '-v /root/.m2:/root/.m2'
-        }
-    }
+    agent any
 
     environment {
         imagename = "pdisec2122/project-movie-fetcher"
@@ -25,6 +20,13 @@ pipeline {
         }
 
         stage('Build Java Application') {
+            agent {
+                docker {
+                    image 'maven:3.8.1-adoptopenjdk-11'
+                    args '-v /root/.m2:/root/.m2'
+                }
+            }
+
             environment {
                 HOME="."
             }
@@ -32,10 +34,27 @@ pipeline {
             steps {
                 sh 'mvn install -DskipTests'
             }
+
+            post {
+                always {
+                    archiveArtifacts artifacts: 'moviefetcher-0.0.1-SNAPSHOT.war', fingerprint: true
+                }
+            }
         }
 
         stage('Docker build image') {
+
             steps {
+                step([
+                    $class: 'CopyArtifact',
+                    filter: 'moviefetcher-0.0.1-SNAPSHOT.war',
+                    fingerprintArtifacts: true,
+                    optional: true,
+                    projectName: env.JOB_NAME,
+                    selector: [$class: 'SpecificBuildSelector',
+                            buildNumber: env.BUILD_NUMBER]
+                ])
+                
                 script {
                     dockerImage = docker.build imagename
                 }
