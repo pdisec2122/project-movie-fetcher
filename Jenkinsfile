@@ -9,10 +9,11 @@ pipeline {
          jdk 'jdk11'
     }
 
+    try {
 
-    stages {
+        stages {
 
-        try {
+        
 
             stage('Preparation') {
                 git branch: 'main', url: 'https://github.com/pdisec2122/project-movie-fetcher.git'
@@ -39,9 +40,11 @@ pipeline {
 
             currentBuild.result = "SUCCESS";
         
-        } catch(e) {
+        
+        }
+        
+    } catch(e) {
             currentBuild.result = "FAILURE";
             throw e;
-        }
     }
 }
