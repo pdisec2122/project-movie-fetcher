@@ -37,7 +37,7 @@ pipeline {
 
             post {
                 always {
-                    archiveArtifacts artifacts: 'moviefetcher-0.0.1-SNAPSHOT.war', fingerprint: true
+                    archiveArtifacts artifacts: 'target/moviefetcher-0.0.1-SNAPSHOT.war', fingerprint: true
                 }
             }
         }
@@ -47,7 +47,7 @@ pipeline {
             steps {
                 step([
                     $class: 'CopyArtifact',
-                    filter: 'moviefetcher-0.0.1-SNAPSHOT.war',
+                    filter: 'target/moviefetcher-0.0.1-SNAPSHOT.war',
                     fingerprintArtifacts: true,
                     optional: true,
                     projectName: env.JOB_NAME,
