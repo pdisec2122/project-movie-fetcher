@@ -1,4 +1,9 @@
 pipeline {
+    environment {
+        imagename = "pdisec2122/project-movie-fetcher"
+        registryCredential = 'dockerhub'
+        dockerImage = ''
+    }
     agent {
         docker {
             image 'maven:3-alpine'
@@ -11,15 +16,15 @@ pipeline {
 
     stages {
 
-        stage('Preparation') {
+        stage('Cloning Git') {
             steps {
-                git branch: 'main', url: 'https://github.com/pdisec2122/project-movie-fetcher.git'
-                sh "git rev-parse --short HEAD > .git/commit-id"
-                commit_id = readFile('.git/commit-id').trim()
+                git([url: 'https://github.com/pdisec2122/project-movie-fetcher.git', 
+                    branch: 'main'])
+
             }
         }
 
-        stage('Build') {
+        stage('Build Java Application') {
             environment {
                 HOME="."
             }
@@ -28,13 +33,22 @@ pipeline {
             }
         }
 
-        stage('docker build/push') {
+        stage('Docker build image') {
             steps {
-               docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                    def app = docker.build("pdisec2122/project-movie-fetcher")
-                    app.push("${commit_id}")
-                    app.push("latest")
-                } 
+                script {
+                    dockerImage = docker.build imagename
+                }
+            }
+        }
+
+        stage('Deploy Image') {
+            steps{
+                script {
+                    docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
+                        dockerImage.push("$BUILD_NUMBER")
+                        dockerImage.push('latest')
+                    }
+                }
             }
         }
     
