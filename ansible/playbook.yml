@@ -35,6 +35,11 @@
         name: "{{ default_container_image }}"
         source: pull
 
+    - name: Create docker network
+      docker_network:
+        name: "{{ docker_network }}"
+        state: present
+
     - name: Create default containers
       docker_container:
         name: "{{ default_container_name }}"
@@ -42,4 +47,6 @@
         volumes:
           - "{{playbook_dir}}/config/application.properties:/application.properties"
         ports:
-          - "8081:8080"
+          - "8081:8081"
+        networks:
+          - name: "{{ docker_network }}"
